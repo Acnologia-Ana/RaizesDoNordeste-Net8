@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RaizesDoNordeste.Application.Interfaces;
 using RaizesDoNordeste.Infrastructure.Persistence;
+using RaizesDoNordeste.Infrastructure.Services;
 
 namespace RaizesDoNordeste.Infrastructure;
 
@@ -12,12 +14,17 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         var connectionString =
-            configuration.GetConnectionString("DefaultConnection")
+            configuration.GetConnectionString(
+                "DefaultConnection")
             ?? throw new InvalidOperationException(
                 "Connection string 'DefaultConnection' nao configurada.");
 
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(connectionString));
+
+        services.AddScoped<
+            ICatalogoService,
+            CatalogoService>();
 
         return services;
     }
