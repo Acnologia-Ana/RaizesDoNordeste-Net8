@@ -1,11 +1,71 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using RaizesDoNordeste.Domain.Entities;
+using RaizesDoNordeste.Domain.Enums;
 
 namespace RaizesDoNordeste.Infrastructure.Persistence;
 
 public static class DbInitializer
 {
     public static async Task SeedAsync(
+        AppDbContext dbContext,
+        IConfiguration configuration)
+    {
+        await SeedAdminAsync(
+            dbContext,
+            configuration);
+
+        await SeedCatalogoAsync(
+            dbContext);
+    }
+
+    private static async Task SeedAdminAsync(
+        AppDbContext dbContext,
+        IConfiguration configuration)
+    {
+        var email =
+            configuration["AdminSeed:Email"]
+            ?? "admin@raizesdonordeste.local";
+
+        email =
+            email.Trim().ToLowerInvariant();
+
+        var password =
+            configuration["AdminSeed:Password"]
+            ?? throw new InvalidOperationException(
+                "AdminSeed:Password nao configurada.");
+
+        var existe =
+            await dbContext.Usuarios
+                .AnyAsync(x => x.Email == email);
+
+        if (existe)
+            return;
+
+        var admin = new Usuario
+        {
+            Nome = "Administrador",
+            Email = email,
+            Role = RoleUsuario.Admin,
+            Ativo = true,
+            CriadoEm = DateTime.UtcNow
+        };
+
+        var hasher =
+            new PasswordHasher<Usuario>();
+
+        admin.SenhaHash =
+            hasher.HashPassword(
+                admin,
+                password);
+
+        dbContext.Usuarios.Add(admin);
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    private static async Task SeedCatalogoAsync(
         AppDbContext dbContext)
     {
         if (await dbContext.Unidades.AnyAsync())
@@ -79,7 +139,8 @@ public static class DbInitializer
             recife,
             olinda);
 
-        dbContext.Produtos.AddRange(produtos);
+        dbContext.Produtos.AddRange(
+            produtos);
 
         await dbContext.SaveChangesAsync();
 
@@ -91,56 +152,48 @@ public static class DbInitializer
                 ProdutoId = produtos[0].Id,
                 Quantidade = 30
             },
-
             new Estoque
             {
                 UnidadeId = recife.Id,
                 ProdutoId = produtos[1].Id,
                 Quantidade = 40
             },
-
             new Estoque
             {
                 UnidadeId = recife.Id,
                 ProdutoId = produtos[2].Id,
                 Quantidade = 18
             },
-
             new Estoque
             {
                 UnidadeId = recife.Id,
                 ProdutoId = produtos[3].Id,
                 Quantidade = 25
             },
-
             new Estoque
             {
                 UnidadeId = recife.Id,
                 ProdutoId = produtos[4].Id,
                 Quantidade = 50
             },
-
             new Estoque
             {
                 UnidadeId = olinda.Id,
                 ProdutoId = produtos[0].Id,
                 Quantidade = 20
             },
-
             new Estoque
             {
                 UnidadeId = olinda.Id,
                 ProdutoId = produtos[1].Id,
                 Quantidade = 15
             },
-
             new Estoque
             {
                 UnidadeId = olinda.Id,
                 ProdutoId = produtos[2].Id,
                 Quantidade = 10
             },
-
             new Estoque
             {
                 UnidadeId = olinda.Id,
@@ -149,7 +202,8 @@ public static class DbInitializer
             }
         };
 
-        dbContext.Estoques.AddRange(estoques);
+        dbContext.Estoques.AddRange(
+            estoques);
 
         await dbContext.SaveChangesAsync();
     }

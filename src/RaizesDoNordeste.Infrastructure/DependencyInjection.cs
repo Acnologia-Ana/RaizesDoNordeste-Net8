@@ -26,6 +26,10 @@ public static class DependencyInjection
             ICatalogoService,
             CatalogoService>();
 
+        services.AddScoped<
+            IAuthService,
+            AuthService>();
+
         return services;
     }
 }
