@@ -30,6 +30,10 @@
     {
       "key": "pedidoId",
       "value": ""
+    },
+    {
+      "key": "clienteToken",
+      "value": ""
     }
   ],
   "item": [
@@ -199,7 +203,41 @@
       ]
     },
     {
-      "name": "08 - Criar pedido",
+      "name": "08 - Estoque insuficiente (409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/pedidos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"unidadeId\": 1,\n  \"canalPedido\": \"Web\",\n  \"itens\": [\n    {\n      \"produtoId\": 1,\n      \"quantidade\": 100\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('409 - estoque insuficiente', () => pm.response.to.have.status(409));",
+              "if (pm.response.code === 409) pm.test('Mensagem especifica', () => pm.expect(pm.response.json().erro).to.include('Estoque insuficiente'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Criar pedido",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/api/pedidos",
@@ -233,7 +271,7 @@
       ]
     },
     {
-      "name": "09 - Preparo antes do pagamento",
+      "name": "10 - Preparo antes do pagamento",
       "request": {
         "method": "PATCH",
         "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}/status",
@@ -266,7 +304,7 @@
       ]
     },
     {
-      "name": "10 - Pagamento recusado",
+      "name": "11 - Pagamento recusado",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}/pagamento/mock",
@@ -299,7 +337,7 @@
       ]
     },
     {
-      "name": "11 - Pagamento aprovado",
+      "name": "12 - Pagamento aprovado",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}/pagamento/mock",
@@ -332,7 +370,7 @@
       ]
     },
     {
-      "name": "12 - Pagamento duplicado",
+      "name": "13 - Pagamento duplicado",
       "request": {
         "method": "POST",
         "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}/pagamento/mock",
@@ -365,7 +403,7 @@
       ]
     },
     {
-      "name": "13 - Em preparo",
+      "name": "14 - Em preparo",
       "request": {
         "method": "PATCH",
         "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}/status",
@@ -398,7 +436,7 @@
       ]
     },
     {
-      "name": "14 - Pronto",
+      "name": "15 - Pronto",
       "request": {
         "method": "PATCH",
         "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}/status",
@@ -431,7 +469,7 @@
       ]
     },
     {
-      "name": "15 - Entregue",
+      "name": "16 - Entregue",
       "request": {
         "method": "PATCH",
         "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}/status",
@@ -464,7 +502,7 @@
       ]
     },
     {
-      "name": "16 - Consultar pedido",
+      "name": "17 - Consultar pedido",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/api/pedidos/{{pedidoId}}",
@@ -483,7 +521,7 @@
       ]
     },
     {
-      "name": "17 - Filtrar pedidos entregues",
+      "name": "18 - Filtrar pedidos entregues",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/api/pedidos?canal=Web&status=Entregue",
@@ -502,7 +540,7 @@
       ]
     },
     {
-      "name": "18 - Estoque sem token",
+      "name": "19 - Estoque sem token",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/api/estoques?unidadeId=1",
@@ -518,6 +556,83 @@
             "type": "text/javascript",
             "exec": [
               "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 - Cadastrar cliente para teste de perfil (201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/registrar",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Cliente de Teste Postman\",\n  \"email\": \"{{clienteEmail}}\",\n  \"senha\": \"{{clienteSenha}}\",\n  \"cpf\": null,\n  \"telefone\": null,\n  \"consentimentoFidelidade\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var sufixo=String(Date.now())+Math.floor(Math.random()*10000);",
+              "pm.variables.set('clienteEmail','postman.'+sufixo+'@example.com');",
+              "pm.variables.set('clienteSenha','Teste@'+sufixo+'!');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 - cliente cadastrado', () => pm.response.to.have.status(201));",
+              "if (pm.response.code === 201) { var body=pm.response.json(); pm.test('JWT retornado', () => pm.expect(body.accessToken).to.be.a('string').and.not.empty); pm.collectionVariables.set('clienteToken',body.accessToken); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 - Estoque negado ao Cliente (403)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/estoques?unidadeId=1",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{clienteToken}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403 - Cliente sem permissão', () => pm.response.to.have.status(403));"
             ]
           }
         }
