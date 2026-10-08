@@ -30,6 +30,8 @@ public static class DependencyInjection
             IAuthService,
             AuthService>();
 
+        services.AddScoped<IPedidoService, PedidoService>();
+
         return services;
     }
 }
