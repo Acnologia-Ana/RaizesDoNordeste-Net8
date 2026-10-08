@@ -1,0 +1,44 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor Cliente
+actor Atendente
+actor Cozinha
+actor "Gerente / Administrador" as Gestor
+
+rectangle "Raízes do Nordeste - API" {
+    usecase "Consultar cardápio" as UC1
+    usecase "Cadastrar cliente" as UC2
+    usecase "Autenticar usuário" as UC3
+    usecase "Criar pedido" as UC4
+    usecase "Consultar pedido" as UC5
+    usecase "Simular pagamento" as UC6
+    usecase "Atualizar status do pedido" as UC7
+    usecase "Consultar estoque" as UC8
+}
+
+Cliente --> UC1
+Cliente --> UC2
+Cliente --> UC3
+Cliente --> UC4
+Cliente --> UC5
+Cliente --> UC6
+
+Atendente --> UC3
+Atendente --> UC4
+Atendente --> UC5
+Atendente --> UC6
+Atendente --> UC7
+
+Cozinha --> UC3
+Cozinha --> UC5
+Cozinha --> UC7
+
+Gestor --> UC3
+Gestor --> UC4
+Gestor --> UC5
+Gestor --> UC6
+Gestor --> UC7
+Gestor --> UC8
+@enduml
